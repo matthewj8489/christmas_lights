@@ -10,7 +10,7 @@
 
 #define PIXEL_PIN 6
 
-#define PIXEL_COUNT 50
+#define PIXEL_COUNT 100
 
 // Parameter 1 = number of pixels in strip
 // Parameter 2 = Arduino pin number (most are valid)
