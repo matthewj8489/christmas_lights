@@ -1,22 +1,64 @@
 $fn=50;
 e=0.1;
 
-body_size=40;
-thickness=1.5;
-hole_size=12.5;
-box_height=3;
+circuit_board_x=30;
+circuit_board_y=70;
 
-rotate(a=[0,180,0])
-translate([0,0,-(body_size)])
+hole_radius=7;
+wire_hole_r=3;
+
+thickness=2;
+case_sz_x=circuit_board_x+20;
+case_sz_y=circuit_board_y+20;
+case_sz_z=20;
+
+out_case_sz_x=case_sz_x+thickness*2;
+out_case_sz_y=case_sz_y+thickness*2;
+out_case_sz_z=case_sz_z+thickness*2;
+
+hole_one_y=out_case_sz_y-hole_radius-10;
+hole_two_y=hole_one_y-hole_radius*2-10;
+
+overlap_lip_h=2;
+
 difference() {
-    cube(body_size);
+    full_case();
+    
+    translate([-e,-e,out_case_sz_z/2])
+    cube([out_case_sz_x+2*e,out_case_sz_y+2*e,out_case_sz_z+e]);
+}
 
-    translate([thickness, thickness, thickness])
-    cube(body_size-thickness*2);
+
+module full_case() {
+    difference() {
+        cube([out_case_sz_x,out_case_sz_y, out_case_sz_z]);
+        
+        // get rid of top half of case //translate([-e,-e,out_case_sz_z/2-e])
+        //cube([out_case_sz_x+2*e,out_case_sz_y+2*e,out_case_sz_z]);
+        
+        // hollow out the case
+        translate([thickness,thickness,thickness])
+        cube([case_sz_x, case_sz_y, case_sz_z]);
+        
+        // Add the top hole for the power switch
+        translate([out_case_sz_x/2, out_case_sz_y+e, out_case_sz_z/2])
+        rotate([90,0,0])
+        cylinder(h=thickness+2*e, r=hole_radius);
+        
+        // Add the side hole for the first button
+        translate([-e, hole_one_y, out_case_sz_z/2])
+        rotate([0,90,0])
+        cylinder(h=thickness+2*e, r=hole_radius);
+        
+        // Add the side hole for the second button
+        translate([-e, hole_two_y, out_case_sz_z/2])
+        rotate([0,90,0])
+        cylinder(h=thickness+2*e, r=hole_radius);
+        
+        // Add a hole for the wires
+        translate([out_case_sz_x/2, thickness+e, out_case_sz_z/2])
+        rotate([90,0,0])
+        cylinder(h=thickness+2*e, r=wire_hole_r);
+    }
     
-    translate([-e,-e,-e])
-    cube([body_size+e*2, body_size+e*2, body_size-box_height+e]);
-    
-    translate([body_size/2,body_size/2,body_size-thickness-e])
-    cylinder(h=thickness*2+e*2, r=hole_size/2);
 }
