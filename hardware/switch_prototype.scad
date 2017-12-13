@@ -24,6 +24,7 @@ box_height=3;
 clip();
 
 difference() {
+    //translate([-5,0,0])
     cube(10);
     
     clipHole();
