@@ -3,9 +3,9 @@ e=0.1;
 
 include <latches.scad>
 
-thickness=5;
-case_sz_x=120;
-case_sz_y=80;
+thickness=2;
+case_sz_x=100;
+case_sz_y=60;
 case_sz_z=40;
 
 out_case_sz_x=case_sz_x+thickness*2;
@@ -15,16 +15,19 @@ out_case_sz_z=case_sz_z+thickness*2;
 hole_radius=7;
 wire_hole_r=3;
 
-button1_x=25;
-button1_y=40;
+//button1_x=25;
+button1_x=case_sz_x/4+thickness;
+button1_y=out_case_sz_y/2;
 
-button2_x=50;
-button2_y=40;
+//button2_x=50;
+button2_x=button1_x+case_sz_x/4;
+button2_y=out_case_sz_y/2;
 
-switch_button_x=90;
-switch_button_y=40;
+//switch_button_x=90;
+switch_button_x=button2_x+case_sz_x/4;
+switch_button_y=out_case_sz_y/2;
 
-case_top_height=20;
+case_top_height=thickness;
 
 clip1_x=out_case_sz_x/4;
 clip2_x=out_case_sz_x*0.75;
@@ -32,20 +35,56 @@ clip1_y=0;
 clip2_y=out_case_sz_y;
 
 // clip params
-lip_depth=1.5;
+lip_depth=thickness-0.5;
+clip_height=8;
 
-top_case();
+
+
+
+//translate([0,out_case_sz_y+10,0])
+//translate([0,out_case_sz_y,out_case_sz_z])
+//rotate([180,0,0])
+//top_case();
+
+bot_case();
+
+
+
 
 module bot_case() {
     difference() {
         full_case();
 
-        translate([-e,-e,out_case_sz_z-case_top_height])
-        cube([out_case_sz_x+2*e, out_case_sz_y+2*e, case_top_height+e]);
+        translate([-e,-e,out_case_sz_z-case_top_height-e])
+        cube([out_case_sz_x+2*e, out_case_sz_y+2*e, case_top_height+2*e]);
         
-        translate([clip1_x, clip1_y, out_case_sz_z-case_top_height-7])
-        clipHole(lipDepth=lip_depth);
+        // Clip Latches
+        translate([clip1_x, clip1_y+thickness, out_case_sz_z-case_top_height])
+        rotate([180,0,0])
+        clipHole(lipDepth=lip_depth, clipHeight=clip_height);
+        
+        translate([clip2_x, clip1_y+thickness, out_case_sz_z-case_top_height])
+        rotate([180,0,0])
+        clipHole(lipDepth=lip_depth, clipHeight=clip_height);
+        
+        translate([clip1_x, clip2_y-thickness, out_case_sz_z-case_top_height])
+        rotate([180,0,180])
+        clipHole(lipDepth=lip_depth, clipHeight=clip_height);
+        
+        translate([clip2_x, clip2_y-thickness, out_case_sz_z-case_top_height])
+        rotate([180,0,180])
+        clipHole(lipDepth=lip_depth, clipHeight=clip_height);
+        
+        // Wire holes               
+        translate([out_case_sz_x/4, out_case_sz_y+e, wire_hole_r+thickness])
+        rotate([90,0,0])        
+        cylinder(h=thickness+2*e, r=wire_hole_r);
+        
+        translate([out_case_sz_x*0.75, out_case_sz_y+e, wire_hole_r+thickness])
+        rotate([90,0,0])        
+        cylinder(h=thickness+2*e, r=wire_hole_r);
     }
+       
 
 }
 
@@ -59,19 +98,20 @@ module top_case() {
         cube([out_case_sz_x+2*e, out_case_sz_y+2*e, out_case_sz_z+e-case_top_height]);
     }
 
-    translate([clip1_x, clip1_y+lip_depth, case_top_height])
+    // Clip Latches
+    translate([clip1_x, clip1_y+thickness, case_top_height])
     rotate([0,0,180])
-    clip(lipDepth=lip_depth);
+    clip(lipDepth=lip_depth, clipHeight=clip_height);
 
-    translate([clip2_x, clip1_y+lip_depth, case_top_height])
+    translate([clip2_x, clip1_y+thickness, case_top_height])
     rotate([0,0,180])
-    clip(lipDepth=lip_depth);
+    clip(lipDepth=lip_depth, clipHeight=clip_height);
 
-    translate([clip1_x, clip2_y-lip_depth, case_top_height])
-    clip(lipDepth=lip_depth);
+    translate([clip1_x, clip2_y-thickness, case_top_height])
+    clip(lipDepth=lip_depth, clipHeight=clip_height);
 
-    translate([clip2_x, clip2_y-lip_depth, case_top_height])
-    clip(lipDepth=lip_depth);
+    translate([clip2_x, clip2_y-thickness, case_top_height])
+    clip(lipDepth=lip_depth, clipHeight=clip_height);
 }
 
 
