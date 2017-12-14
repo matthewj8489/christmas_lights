@@ -5,7 +5,7 @@ include <latches.scad>
 
 thickness=2;
 case_sz_x=100;
-case_sz_y=60;
+case_sz_y=90;
 case_sz_z=40;
 
 out_case_sz_x=case_sz_x+thickness*2;
@@ -38,8 +38,32 @@ clip2_y=out_case_sz_y;
 lip_depth=thickness-0.5;
 clip_height=8;
 
+// circuit board params
+brd_dist_from_box=5;
+brd_peg_orig=[thickness+brd_dist_from_box,thickness+brd_dist_from_box,thickness];
 
+brd_peg_r=1;
+brd_stdoff_h=3;
+brd_peg_h=5;
 
+brd_peg_dist_x=26;
+brd_peg_dist_y=66;
+
+// arduino uno board params
+ard_peg_r=1.5;
+ard_stdoff_h=3;
+ard_peg_h=5;
+
+ard_dist_from_brd=7;
+ard_dist_from_box=15.3+5;
+ard_peg_orig=brd_peg_orig+[brd_peg_dist_x,0,0]+[ard_dist_from_brd+2.5+ard_peg_r,ard_dist_from_box,0];
+ard_pwr_peg_x=5.1+27.9+15.2;
+
+ard_peg_back1_x=15.2;
+ard_peg_back1_y=50.8;
+
+ard_peg_back2_x=15.2+27.9;
+ard_peg_back2_y=50.8;
 
 //translate([0,out_case_sz_y+10,0])
 //translate([0,out_case_sz_y,out_case_sz_z])
@@ -83,9 +107,34 @@ module bot_case() {
         translate([out_case_sz_x*0.75, out_case_sz_y+e, wire_hole_r+thickness])
         rotate([90,0,0])        
         cylinder(h=thickness+2*e, r=wire_hole_r);
+        
     }
        
+    // Circuit board standoffs
+    translate(brd_peg_orig)
+    peg_standoff(brd_peg_r,brd_stdoff_h,brd_peg_h);
+    
+    translate(brd_peg_orig+[brd_peg_dist_x,0,0])
+    peg_standoff(brd_peg_r,brd_stdoff_h,brd_peg_h);
+    
+    translate(brd_peg_orig+[0,brd_peg_dist_y,0])
+    peg_standoff(brd_peg_r,brd_stdoff_h,brd_peg_h);
+    
+    translate(brd_peg_orig+[brd_peg_dist_x,brd_peg_dist_y,0])
+    peg_standoff(brd_peg_r,brd_stdoff_h,brd_peg_h);
 
+    // Arduino board standoffs
+    translate(ard_peg_orig)
+    peg_standoff(ard_peg_r,ard_stdoff_h,ard_peg_h);
+    
+    translate(ard_peg_orig+[ard_pwr_peg_x,0,0])
+    peg_standoff(ard_peg_r,ard_stdoff_h,ard_peg_h);
+    
+    translate(ard_peg_orig+[ard_peg_back1_x,ard_peg_back1_y,0])
+    peg_standoff(ard_peg_r,ard_stdoff_h,ard_peg_h);
+    
+    translate(ard_peg_orig+[ard_peg_back2_x,ard_peg_back2_y,0])
+    peg_standoff(ard_peg_r,ard_stdoff_h,ard_peg_h);
 }
 
 module top_case() {
@@ -138,4 +187,10 @@ module full_case() {
 module button_hole(holeRadius, holeX, holeY) {
     translate([holeX, holeY, out_case_sz_z-(thickness+e)])
     cylinder(h=thickness+2*e, r=holeRadius);
+}
+
+module peg_standoff(peg_r, standoff_h, peg_total_h) {
+    cylinder(r=peg_r+1, h=standoff_h);
+    translate([0,0,standoff_h])
+    cylinder(r=peg_r, h=peg_total_h-standoff_h);
 }
