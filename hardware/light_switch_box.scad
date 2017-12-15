@@ -6,7 +6,11 @@ include <latches.scad>
 thickness=2;
 case_sz_x=100;
 case_sz_y=90;
-case_sz_z=40;
+//case_sz_z=trigger_switch_h+brd_peg_h;
+case_sz_z=37+5;
+
+trigger_switch_h=37;
+arduino_h=18;
 
 out_case_sz_x=case_sz_x+thickness*2;
 out_case_sz_y=case_sz_y+thickness*2;
@@ -16,15 +20,15 @@ hole_radius=7;
 wire_hole_r=3;
 
 //button1_x=25;
-button1_x=case_sz_x/4+thickness;
+button1_x=out_case_sz_x/4+thickness;
 button1_y=out_case_sz_y/2;
 
 //button2_x=50;
-button2_x=button1_x+case_sz_x/4;
+button2_x=button1_x+out_case_sz_x/4;
 button2_y=out_case_sz_y/2;
 
 //switch_button_x=90;
-switch_button_x=button2_x+case_sz_x/4;
+switch_button_x=button2_x+out_case_sz_x/4;
 switch_button_y=out_case_sz_y/2;
 
 case_top_height=thickness;
@@ -65,10 +69,10 @@ ard_peg_back1_y=50.8;
 ard_peg_back2_x=15.2+27.9;
 ard_peg_back2_y=50.8;
 
-//translate([0,out_case_sz_y+10,0])
+translate([0,out_case_sz_y+10,0])
 //translate([0,out_case_sz_y,out_case_sz_z])
 //rotate([180,0,0])
-//top_case();
+top_case();
 
 bot_case();
 
@@ -100,11 +104,11 @@ module bot_case() {
         clipHole(lipDepth=lip_depth, clipHeight=clip_height);
         
         // Wire holes               
-        translate([out_case_sz_x/4, out_case_sz_y+e, wire_hole_r+thickness])
+        translate([out_case_sz_x/2, thickness+e, wire_hole_r+thickness])
         rotate([90,0,0])        
         cylinder(h=thickness+2*e, r=wire_hole_r);
         
-        translate([out_case_sz_x*0.75, out_case_sz_y+e, wire_hole_r+thickness])
+        translate([out_case_sz_x*0.75, thickness+e, wire_hole_r+thickness])
         rotate([90,0,0])        
         cylinder(h=thickness+2*e, r=wire_hole_r);
         

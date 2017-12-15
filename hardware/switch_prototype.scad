@@ -21,14 +21,35 @@ box_height=3;
 //    cylinder(h=thickness*2+e*2, r=hole_size/2);
 //}
 
-clip();
+//clip();
+//
+//difference() {
+//    //translate([-5,0,0])
+//    cube(10);
+//    
+//    clipHole();
+//}
 
-difference() {
-    //translate([-5,0,0])
-    cube(10);
-    
-    clipHole();
+peg_standoff(1.5,3,5);
+
+translate([7,0,0])
+peg_standoff(1, 3, 5);
+
+module peg_standoff(peg_r, standoff_h, peg_total_h) {
+    cylinder(r=peg_r+1, h=standoff_h);
+    translate([0,0,standoff_h])
+    cylinder(r=peg_r, h=peg_total_h-standoff_h);
 }
+
+module full_box() {
+    difference() {
+        cube(10);
+        
+        translate([1,1,1])
+        cube(8);
+    }
+}
+
 
 //Create a clip that snapps into a clipHole
 module clip(clipWidth = 5, clipDepth = 5, clipHeight = 5, lipDepth = 1.5, lipHeight = 3) {
