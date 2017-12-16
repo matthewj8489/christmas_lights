@@ -69,12 +69,12 @@ ard_peg_back1_y=50.8;
 ard_peg_back2_x=15.2+27.9;
 ard_peg_back2_y=50.8;
 
-translate([0,out_case_sz_y+10,0])
+//translate([0,out_case_sz_y+10,0])
 //translate([0,out_case_sz_y,out_case_sz_z])
 //rotate([180,0,0])
 top_case();
 
-bot_case();
+//bot_case();
 
 
 
