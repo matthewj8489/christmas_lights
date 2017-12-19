@@ -17,7 +17,7 @@ out_case_sz_y=case_sz_y+thickness*2;
 out_case_sz_z=case_sz_z+thickness*2;
 
 hole_radius=7;
-wire_hole_r=3;
+wire_hole_r=5;
 
 //button1_x=25;
 button1_x=out_case_sz_x/4+thickness;
@@ -56,10 +56,11 @@ brd_peg_dist_y=66;
 // arduino uno board params
 ard_peg_r=1.5;
 ard_stdoff_h=3;
-ard_peg_h=5;
+ard_peg_h=8;
 
 ard_dist_from_brd=7;
-ard_dist_from_box=15.3+5;
+usb_dist_from_ard=7;
+ard_dist_from_box=15.3+usb_dist_from_ard+3;
 ard_peg_orig=brd_peg_orig+[brd_peg_dist_x,0,0]+[ard_dist_from_brd+2.5+ard_peg_r,ard_dist_from_box,0];
 ard_pwr_peg_x=5.1+27.9+15.2;
 
@@ -69,12 +70,36 @@ ard_peg_back1_y=50.8;
 ard_peg_back2_x=15.2+27.9;
 ard_peg_back2_y=50.8;
 
+// arduino power wire hole
+//ard_wire_hole_x=ard_pwr_peg_x-6;
+//ard_wire_hole_x=(ard_peg_orig[0]-2.6)+40.7;
+ard_wire_hole_x=ard_peg_orig[0]+ard_peg_back2_x;
+//ard_wire_hole_z=thickness+ard_stdoff_h+10.9/2;
+ard_wire_hole_z=thickness+ard_stdoff_h+8;
+
+ard_pwr_cord_r=5;
+ard_wire_hole_r=ard_pwr_cord_r+2;
+
+// ard power cord: ([position],[dimensions])
+//[40.7, -1.8, 0], [9.0, 13.2, 10.9]
+// pwr diameter = 10
+// height of pwr con = 13
+//4, 16
+
+//usb_x=9;
+//usb_y=7;
+
+// board wire hole
+brd_wire_hole_x=brd_peg_orig[0]+brd_peg_dist_x+ard_dist_from_brd+2;
+
+
+
 //translate([0,out_case_sz_y+10,0])
 //translate([0,out_case_sz_y,out_case_sz_z])
 //rotate([180,0,0])
-top_case();
+//top_case();
 
-//bot_case();
+bot_case();
 
 
 
@@ -104,13 +129,15 @@ module bot_case() {
         clipHole(lipDepth=lip_depth, clipHeight=clip_height);
         
         // Wire holes               
-        translate([out_case_sz_x/2, thickness+e, wire_hole_r+thickness])
+        //translate([out_case_sz_x/2, thickness+e, wire_hole_r+thickness])
+        translate([brd_wire_hole_x, thickness+e, wire_hole_r+thickness])
         rotate([90,0,0])        
         cylinder(h=thickness+2*e, r=wire_hole_r);
         
-        translate([out_case_sz_x*0.75, thickness+e, wire_hole_r+thickness])
+        //translate([out_case_sz_x*0.75, thickness+e, wire_hole_r+thickness])
+        translate([ard_wire_hole_x, thickness+e, ard_wire_hole_z])
         rotate([90,0,0])        
-        cylinder(h=thickness+2*e, r=wire_hole_r);
+        cylinder(h=thickness+2*e, r=ard_wire_hole_r);
         
     }
        
