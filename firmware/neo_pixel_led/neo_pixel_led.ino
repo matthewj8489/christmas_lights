@@ -7,6 +7,8 @@
                           // driven with a pull-up resistor so the switch should
                           // pull the pin to ground momentarily.  On a high -> low
                           // transition the button press logic will execute. 
+#define FAV_BUTTON_PIN  3                          
+#define SWITCH_PIN    4
 
 #define PIXEL_PIN 6
 
@@ -32,18 +34,21 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, NEO_RGB + NE
 #define BLUE_PULSE 2
 #define WHITE_PULSE 3
 
-#define MAX_SHOWS 10
+#define MAX_SHOWS 13
 
 //bool oldState = HIGH;
 int showType = 0;
+bool allLedOff = false;
 
-long debouncing_time = 15; //debounce time in ms
+long debouncing_time = 20; //debounce time in ms
 volatile unsigned long last_micros = 0;
+volatile unsigned long last_micros_2 = 0;
 
 void setup() {
   // put your setup code here, to run once:
-  //pinMode(BUTTON_PIN, INPUT_PULLUP);
+  pinMode(SWITCH_PIN, INPUT);
   attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), debounceInterrupt, FALLING);
+  attachInterrupt(digitalPinToInterrupt(FAV_BUTTON_PIN), debounceShowFavoriteInterrupt, FALLING);
   strip.begin();
   strip.show();
 
@@ -99,7 +104,21 @@ void loop() {
 //  // Set the last button state to the old state.
 //  oldState = newState;
 
-  startShow(showType);
+  //startShow(showType);
+
+
+  ////////// FINAL CODE ///////////
+  int switchState = digitalRead(SWITCH_PIN);
+  
+  if (switchState == 1) {
+    startShow(showType);
+    allLedOff = false;
+  } else if (allLedOff == false) {
+    allOff();
+    allLedOff = true;
+  } else {
+    delay(100);
+  }
   
 }
 
@@ -109,6 +128,13 @@ void debounceInterrupt() {
     if (showType > MAX_SHOWS) showType=0;
     last_micros = micros();
   }
+}
+
+void debounceShowFavoriteInterrupt() {
+  if((long)(micros() - last_micros_2) >= debouncing_time * 1000){
+    showType=8;
+    last_micros_2 = micros();
+  }  
 }
 
 void startShow(int i) {
@@ -137,16 +163,76 @@ void startShow(int i) {
             break;
     case 10: snakeChase(strip.Color(127, 0, 0), 100);
             break;
-    //case 7: rainbow(20);
-    //        break;
-    //case 8: rainbowCycle(20);
-    //        break;
-    //case 9: theaterChaseRainbow(50);
-    //        break;
+    case 11: rainbow(20);
+            break;
+    case 12: rainbowCycle(20);
+            break;
+    case 13: theaterChaseRainbow(50);
+            break;
   }
 }
 
+// turn off all leds
+void allOff() {
+  for(uint16_t i=0; i<strip.numPixels(); i++) {
+    strip.setPixelColor(i, strip.Color(0,0,0));
+  }
+  strip.show();
+}
 
+// R,G,B,W runs through the entire strand (best if long wait)
+void christmasChase(uint8_t wait) {
+  for(int j=0; j<4; j++) {
+    for(int q=0; q < 4; q++) {
+      for(uint16_t i=0; i<strip.numPixels(); i+=4) {
+          strip.setPixelColor(i+q, getChristmasChaseColor(j,q))
+      }
+    }
+    strip.show();
+    delay(wait);
+  }
+}
+
+Color getChristmasChaseColor(int lead_clr, int on_clr) {
+  int r_val, g_val, b_val, w_val;
+  int r_num, g_num, b_num, w_num;
+
+  // color : r_val g_val b_val w_val
+  // lead  : 
+
+  if (lead_clr == 0) {
+    r_num = 0;
+    g_num = 1;
+    b_num = 2;
+    w_num = 3;
+  } else if (lead_clr == 1) {
+    r_num = 3;
+    g_num = 0;
+    b_num = 1;
+    w_num = 2;
+  } else if (lead_clr == 2) {
+    r_num = 2;
+    g_num = 3;
+    b_num = 0;
+    w_num = 1;
+  } else if (lead_clr == 3) {
+    r_num = 1;
+    g_num = 2;
+    b_num = 3;
+    w_num = 0;
+  }
+
+  r_val = (r_num==on_clr?128:0);
+  g_val = (g_num==on_clr?128:0);
+  b_val = (b_num==on_clr?128:0);
+  if (w_num == on_clr) {
+    r_val = 128;
+    g_val = 128;
+    b_val = 128;
+  }
+
+  return strip.Color(r_val, g_val, b_val);
+}
 
 // a light that has a decreasing intensity tail runs through the strip
 void snakeChase(uint32_t color, uint8_t wait) {
