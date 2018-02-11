@@ -48,7 +48,7 @@ brd_peg_orig=[thickness+brd_dist_from_box,thickness+brd_dist_from_box,thickness]
 
 brd_peg_r=1;
 brd_stdoff_h=3;
-brd_peg_h=5;
+brd_peg_h=8;
 
 brd_peg_dist_x=26;
 brd_peg_dist_y=66;
