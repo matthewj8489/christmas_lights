@@ -19,11 +19,27 @@ CRGB leds[NUM_LEDS];
 // and minimize distance between Arduino and first pixel.  Avoid connecting
 // on a live circuit...if you must, connect GND first.
 
+
 #define BRIGHTNESS 128
+
 
 // Debounce tracking
 long debouncing_time = 15; //debounce time in ms
 volatile unsigned long last_micros = 0;
+
+
+// Pattern prototypes
+uint8_t colorWipe(CRGB * leds, int numLeds, uint32_t color);
+
+// List of patterns to display
+typedef uint8_t (*PatternList[])(CRGB*,int,uint32_t);
+PatternList mPatterns = {colorWipe};
+
+uint8_t mCurrentPattern = 0;
+
+
+// Helpful macros/functions
+#define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
 void setup()
 {
@@ -66,10 +82,14 @@ void setup()
 void loop()
 {
 	// Make adjustment to the leds
-	
+  if (mPatterns[mCurrentPattern](leds, NUM_LEDS, 0x00AA00) == PATTERN_FINISHED)
+    mCurrentPattern = (mCurrentPattern + 1) % ARRAY_SIZE(mPatterns);
+    
 	// Show the changes
-	
+	FastLED.show();
+ 
 	// Delay
+  FastLED.delay(10);
 	
 }
 
@@ -86,4 +106,16 @@ void debounceInterrupt() {
 
 /** Color Patterns **/
 
-
+#define PATTERN_FINISHED  0
+uint8_t led_idx = 0; 
+uint8_t colorWipe(CRGB * leds, int numLeds, uint32_t color)
+{
+  leds[led_idx++] = color;
+  if (led_idx == numLeds)
+  {
+    led_idx = 0;
+    return PATTERN_FINISHED;
+  }
+  else
+    return ~PATTERN_FINISHED;
+}
