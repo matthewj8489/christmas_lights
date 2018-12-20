@@ -1,5 +1,52 @@
 #include <FastLED.h>
 
+/********** Color Patterns **********/
+#define PATTERN_FINISHED  0
+uint16_t led_idx = 0; 
+uint8_t colorWipe(CRGB * leds, int numLeds, uint32_t color)
+{
+  leds[led_idx++] = color;
+  if (led_idx == numLeds)
+  {
+    led_idx = 0;
+    return PATTERN_FINISHED;
+  }
+  else
+    return ~PATTERN_FINISHED;
+}
+
+uint16_t ccLedIdx = 0;
+int8_t dir = 1;
+/*
+ * colorChase
+ * 
+ * Color runs along the led strip and back
+ */
+uint8_t colorChase(CRGB * leds, int numLeds, uint32_t color)
+{
+  leds[ccLedIdx] = color;
+  if (ccLedIdx - 1 >= 0)
+    leds[ccLedIdx-1] = 0;
+
+  ccLedIdx+=dir;
+  if (ccLedIdx == numLeds)
+  {
+    dir = -1;
+    return ~PATTERN_FINISHED;  
+  }
+  else if (ccLedIdx == 0)
+  {
+    dir = 1;
+    return PATTERN_FINISHED;
+  }
+  else
+  {
+    return ~PATTERN_FINISHED;
+  }
+}
+
+/************************************/
+
 #define NUM_LEDS 100
 
 #define DATA_PIN 6
@@ -28,18 +75,16 @@ long debouncing_time = 15; //debounce time in ms
 volatile unsigned long last_micros = 0;
 
 
-// Pattern prototypes
-uint8_t colorWipe(CRGB * leds, int numLeds, uint32_t color);
-
 // List of patterns to display
 typedef uint8_t (*PatternList[])(CRGB*,int,uint32_t);
 PatternList mPatterns = {colorWipe};
-
+uint32_t mPatternArraySize;
 uint8_t mCurrentPattern = 0;
 
 
 // Helpful macros/functions
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
+
 
 void setup()
 {
@@ -74,17 +119,27 @@ void setup()
 	// FastLED.addLeds<DOTSTAR, DATA_PIN, CLOCK_PIN, RGB>(leds, NUM_LEDS);
 	
 	FastLED.setBrightness(BRIGHTNESS);
-	
+
+  mPatternArraySize = ARRAY_SIZE(mPatterns);
+  
 	attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), debounceInterrupt, FALLING);
 }
 
+uint8_t mClearLeds = 1;
 
 void loop()
 {
-	// Make adjustment to the leds
-  if (mPatterns[mCurrentPattern](leds, NUM_LEDS, 0x00AA00) == PATTERN_FINISHED)
-    mCurrentPattern = (mCurrentPattern + 1) % ARRAY_SIZE(mPatterns);
-    
+  if (mClearLeds == 1)
+  {
+    FastLED.clear();
+  }
+  else
+  {
+  	// Make adjustment to the leds
+    if (mPatterns[mCurrentPattern](leds, NUM_LEDS, 0x00AA00) == PATTERN_FINISHED)
+      mClearLeds = 1;
+  } 
+  
 	// Show the changes
 	FastLED.show();
  
@@ -95,27 +150,11 @@ void loop()
 
 void debounceInterrupt() {
   if((long)(micros() - last_micros) >= debouncing_time * 1000){
-    
-	// change state of the button here
-	
-	// reset the debounce
+	  // change state of the button here
+	  mCurrentPattern = (mCurrentPattern + 1) % mPatternArraySize;
+    mClearLeds = 1;
+  
+	  // reset the debounce
     last_micros = micros();
   }
-}
-
-
-/** Color Patterns **/
-
-#define PATTERN_FINISHED  0
-uint8_t led_idx = 0; 
-uint8_t colorWipe(CRGB * leds, int numLeds, uint32_t color)
-{
-  leds[led_idx++] = color;
-  if (led_idx == numLeds)
-  {
-    led_idx = 0;
-    return PATTERN_FINISHED;
-  }
-  else
-    return ~PATTERN_FINISHED;
 }

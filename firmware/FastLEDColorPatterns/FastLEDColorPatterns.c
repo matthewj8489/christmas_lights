@@ -14,3 +14,5 @@ uint8_t colorWipe(CRGB * leds, int numLeds, uint32_t color)
 	else
 		return ~PATTERN_FINISHED;
 }
+
+
