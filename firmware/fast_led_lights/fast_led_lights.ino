@@ -45,6 +45,17 @@ uint8_t colorChase(CRGB * leds, int numLeds, uint32_t color)
   }
 }
 
+////////////////////////
+// different methodology
+////////////////////////
+void redWipe(CRGB * leds, int numLeds)
+{
+  uint16_t num;
+  num = lerp16by8(0, numLeds-1, 0);
+  fill_solid(leds, num, CRGB::Red);
+}
+
+
 /************************************/
 
 #define NUM_LEDS 100
@@ -56,7 +67,10 @@ uint8_t colorChase(CRGB * leds, int numLeds, uint32_t color)
                         // driven with a pull-up resistor so the switch should
                         // pull the pin to ground momentarily.  On a high -> low
                         // transition the button press logic will execute. 
-			
+
+#define POT_PIN A1 // Analog pin 1 is used for the potentiometer voltage
+                      // reading.
+                      
 			
 // Create a data array of all the available LEDs			
 CRGB leds[NUM_LEDS];
@@ -68,6 +82,7 @@ CRGB leds[NUM_LEDS];
 
 
 #define BRIGHTNESS 128
+#define FRAMES_PER_SECOND 120
 
 
 // Debounce tracking
@@ -144,8 +159,17 @@ void loop()
 	FastLED.show();
  
 	// Delay
-  FastLED.delay(10);
-	
+  FastLED.delay(1000/FRAMES_PER_SECOND);
+
+  // Read the pot dial and change which pattern is displayed
+  int idx;
+  idx = patternIndex(analogRead(POT_PIN));
+  if (mCurrentPattern != idx)
+  {
+    mClearLeds = 1;
+    mCurrentPattern = idx;
+  }
+  
 }
 
 void debounceInterrupt() {
@@ -157,4 +181,11 @@ void debounceInterrupt() {
 	  // reset the debounce
     last_micros = micros();
   }
+}
+
+// A pattern is associated to each division of a pot value
+uint8_t patternIndex(int pot_val)
+{
+  //return map(pot_val, 0, 1023, 0, mPatternArraySize - 1);  
+  return ((pot_val * mPatternArraySize) / 1023);
 }
