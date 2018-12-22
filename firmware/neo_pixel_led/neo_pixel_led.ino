@@ -34,10 +34,10 @@ Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, NEO_RGB + NE
 #define BLUE_PULSE 2
 #define WHITE_PULSE 3
 
-#define MAX_SHOWS 13
+#define MAX_SHOWS 14
 
 //bool oldState = HIGH;
-int showType = 0;
+int showType = 14;
 bool allLedOff = false;
 
 long debouncing_time = 20; //debounce time in ms
@@ -130,16 +130,32 @@ void debounceInterrupt() {
   }
 }
 
+int currentFavorite=8;
 void debounceShowFavoriteInterrupt() {
   if((long)(micros() - last_micros_2) >= debouncing_time * 1000){
-    showType=8;
+
+    switch(currentFavorite) {
+      case 8:
+        showType=11;
+        currentFavorite=11;
+        break;
+      case 11:
+        showType=14;
+        currentFavorite=14;
+        break;
+      case 14:
+        showType=8;
+        currentFavorite=8;
+        break;
+    }
+    
     last_micros_2 = micros();
   }  
 }
 
 void startShow(int i) {
   switch(i){
-    case 0: colorWipe(strip.Color(0, 0, 0), 50);    // Black/off
+    case 0: colorWipe(strip.Color(64, 64, 64), 50);    // White
             break;
     case 1: colorWipe(strip.Color(64, 0, 0), 50);  // Red
             break;
@@ -155,9 +171,7 @@ void startShow(int i) {
             break;
     case 7: slowPulse(BLUE_PULSE, 0, 64, 50);
             break;
-    case 8: slowPulse(RED_PULSE, 0, 64, 40);
-            slowPulse(GREEN_PULSE, 0, 64, 40);
-            slowPulse(BLUE_PULSE, 0, 64, 40);
+    case 8: slowPulseCycle(0, 64, 40);
             break;
     case 9: colorChase(strip.Color(127, 0, 127), 150);
             break;
@@ -168,6 +182,8 @@ void startShow(int i) {
     case 12: rainbowCycle(20);
             break;
     case 13: theaterChaseRainbow(50);
+            break;
+    case 14: christmasChase(200);
             break;
   }
 }
@@ -181,11 +197,11 @@ void allOff() {
 }
 
 // R,G,B,W runs through the entire strand (best if long wait)
-void christmasChase(uint8_t wait) {
+void christmasChase(uint16_t wait) {
   for(int j=0; j<4; j++) {
     for(int q=0; q < 4; q++) {
       for(uint16_t i=0; i<strip.numPixels(); i+=4) {
-          strip.setPixelColor(i+q, getChristmasChaseColor(j,q))
+          strip.setPixelColor(i+q, getChristmasChaseColor(j,q));
       }
     }
     strip.show();
@@ -193,7 +209,7 @@ void christmasChase(uint8_t wait) {
   }
 }
 
-Color getChristmasChaseColor(int lead_clr, int on_clr) {
+uint32_t getChristmasChaseColor(int lead_clr, int on_clr) {
   int r_val, g_val, b_val, w_val;
   int r_num, g_num, b_num, w_num;
 
@@ -256,6 +272,14 @@ void snakeChase(uint32_t color, uint8_t wait) {
   strip.setPixelColor(strip.numPixels() - 2, strip.Color(0,0,0));
   strip.setPixelColor(strip.numPixels() - 3, strip.Color(0,0,0));
   strip.setPixelColor(strip.numPixels() - 4, strip.Color(0,0,0));
+}
+
+int currentSlowPulseColor=RED_PULSE;
+void slowPulseCycle(uint8_t intensity_low, uint8_t intensity_high, uint8_t wait) {
+  slowPulse(currentSlowPulseColor, intensity_low, intensity_high, wait);
+  currentSlowPulseColor++;
+  if (currentSlowPulseColor > WHITE_PULSE)
+    currentSlowPulseColor=RED_PULSE;
 }
 
 // color : 0 = r, 1 = g, 2 = b, 3 = w
