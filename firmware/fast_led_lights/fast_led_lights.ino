@@ -515,6 +515,7 @@ void loop()
   //  mClearLeds = 1;
   //  mCurrentPattern = idx;
   //}
+  mCurrentPattern = patternIndex(analogRead(POT_PIN));
 
   EVERY_N_MILLISECONDS( 20 ) { mHue++; }
 }
