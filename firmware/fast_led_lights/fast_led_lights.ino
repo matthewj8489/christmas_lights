@@ -440,6 +440,13 @@ uint8_t mCurrentPattern = 0;
 // Helpful macros/functions
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
+#define POT_BRIGHT  0
+#define POT_PATTERN 1
+#define POT_COLOR   2
+uint8_t mPotState = POT_PATTERN;
+#define POT_STATES  3
+
+uint8_t mHue = 0;
 
 void setup()
 {
@@ -477,16 +484,15 @@ void setup()
 
   mPatternArraySize = ARRAY_SIZE(mPatterns);
 
-  //pinMode(SWITCH_PIN, INPUT);
+  pinMode(SWITCH_PIN, INPUT);
 	attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), debounceInterrupt, FALLING);
 }
 
-uint8_t mClearLeds = 1;
+//uint8_t mClearLeds = 1;
 
-uint8_t mHue = 0;
 void loop()
 {
-  //int switchState = digitalRead(SWITCH_PIN);
+  int switchState = digitalRead(SWITCH_PIN);
   
   //if (mClearLeds == 1)
   //{
@@ -499,32 +505,56 @@ void loop()
   //    mClearLeds = 1;
   //} 
 
-  mPatterns[mCurrentPattern](leds, NUM_LEDS, mHue);
-    
-	// Show the changes
-	FastLED.show();
- 
-	// Delay
-  FastLED.delay(1000/FRAMES_PER_SECOND);
+  if (switchState == 1)
+  {
+    mPatterns[mCurrentPattern](leds, NUM_LEDS, mHue);
+      
+  	// Show the changes
+  	FastLED.show();
+   
+  	// Delay
+    FastLED.delay(1000/FRAMES_PER_SECOND);
+  
+    // Read the pot dial and change which pattern is displayed
+    //int idx;
+    //idx = patternIndex(analogRead(POT_PIN));
+    //if (mCurrentPattern != idx)
+    //{
+    //  mClearLeds = 1;
+    //  mCurrentPattern = idx;
+    //}
 
-  // Read the pot dial and change which pattern is displayed
-  //int idx;
-  //idx = patternIndex(analogRead(POT_PIN));
-  //if (mCurrentPattern != idx)
-  //{
-  //  mClearLeds = 1;
-  //  mCurrentPattern = idx;
-  //}
-  mCurrentPattern = patternIndex(analogRead(POT_PIN));
+    // Check the potentiometer
+    switch(mPotState)
+    {
+      case POT_BRIGHT:
+        changeBrightness(analogRead(POT_PIN));
+        break;
+      case POT_PATTERN:
+        changePattern(analogRead(POT_PIN));
+        break;
+      case POT_COLOR:
+        changeBaseColor(analogRead(POT_PIN));
+        break;
+    }
+    //mCurrentPattern = patternIndex(analogRead(POT_PIN));
 
-  EVERY_N_MILLISECONDS( 20 ) { mHue++; }
+    EVERY_N_MILLISECONDS( 20 ) { mHue++; }
+  }
+  else
+  {
+    FastLED.clear();
+
+    FastLED.delay(1000/FRAMES_PER_SECOND);
+  }
 }
 
 void debounceInterrupt() {
   if((long)(micros() - last_micros) >= DEBOUNCE_TIME * 1000){
 	  // change state of the button here
-	  mCurrentPattern = (mCurrentPattern + 1) % mPatternArraySize;
+	  //mCurrentPattern = (mCurrentPattern + 1) % mPatternArraySize;
     //mClearLeds = 1;
+    mPotState = (mPotState + 1) % POT_STATES;
   
 	  // reset the debounce
     last_micros = micros();
@@ -537,3 +567,28 @@ uint8_t patternIndex(int pot_val)
   //return map(pot_val, 0, 1023, 0, mPatternArraySize - 1);  
   return ((pot_val * mPatternArraySize) / 1023);
 }
+
+uint16_t currentBrightness = BRIGHTNESS;
+void changeBrightness(uint16_t pot_val)
+{
+  uint8_t brt;
+  brt = (pot_val * 255) / 1023;
+  if (currentBrightness != brt)
+  {
+    FastLED.setBrightness(brt);
+    currentBrightness = brt;  
+  }  
+}
+
+void changePattern(uint16_t pot_val)
+{
+  mCurrentPattern = patternIndex(pot_val);
+}
+
+void changeBaseColor(uint16_t pot_val)
+{
+  uint16_t clr;
+  clr = (pot_val * 255) / 1023;
+  mHue = clr;
+}
+
