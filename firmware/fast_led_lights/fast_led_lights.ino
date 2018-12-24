@@ -60,6 +60,11 @@ void redWipe2(CRGB * leds, int numLeds, uint32_t color)
   fill_solid(leds, numLeds, CRGB::Red);
 }
 
+void colorPulse(CRGB * leds, int numLeds, uint32_t color)
+{
+  fill_solid(leds, numLeds, CHSV(color, 255, beatsin16( 13, 20, 128 )));
+}
+
 ////////////////////
 // Adafruit examples
 ////////////////////
@@ -69,7 +74,7 @@ void allOff(CRGB * leds, int numLeds, uint32_t color) {
 }
 
 void fillColor(CRGB * leds, int numLeds, uint32_t color) {
-  fill_solid(leds, numLeds, color);
+  fill_solid(leds, numLeds, CHSV(color, 255, 200));
 }
 
 // R,G,B,W runs through the entire strand (best if long wait)
@@ -436,7 +441,7 @@ volatile unsigned long last_micros = 0;
 
 // List of patterns to display
 typedef void (*PatternList[])(CRGB*,int,uint32_t);
-PatternList mPatterns = {rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, fillColor};
+PatternList mPatterns = {colorPulse, rainbowWithGlitter, confetti, sinelon, juggle, rainbow, bpm};
 uint32_t mPatternArraySize;
 uint8_t mCurrentPattern = 0;
 
@@ -463,7 +468,7 @@ void setup()
 	// FastLED.addLeds<WS2811, DATA_PIN, RGB>(leds, NUM_LEDS);
 	// FastLED.addLeds<WS2812, DATA_PIN, RGB>(leds, NUM_LEDS);
 	// FastLED.addLeds<WS2812B, DATA_PIN, RGB>(leds, NUM_LEDS);
-	FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS);
+	FastLED.addLeds<NEOPIXEL, DATA_PIN>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
 	// FastLED.addLeds<APA104, DATA_PIN, RGB>(leds, NUM_LEDS);
 	// FastLED.addLeds<UCS1903, DATA_PIN, RGB>(leds, NUM_LEDS);
 	// FastLED.addLeds<UCS1903B, DATA_PIN, RGB>(leds, NUM_LEDS);
@@ -490,6 +495,8 @@ void setup()
 
   pinMode(SWITCH_PIN, INPUT);
 	attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), debounceInterrupt, FALLING);
+
+  Serial.begin(9600);
 }
 
 //uint8_t mClearLeds = 1;
@@ -497,17 +504,6 @@ void setup()
 void loop()
 {
   int switchState = digitalRead(SWITCH_PIN);
-  
-  //if (mClearLeds == 1)
-  //{
-  //  FastLED.clear();
-  //}
-  //else
-  //{
-  //	// Make adjustment to the leds
-  //  if (mPatterns[mCurrentPattern](leds, NUM_LEDS, gHue) == PATTERN_FINISHED)
-  //    mClearLeds = 1;
-  //} 
 
   if (switchState == 1)
   {
@@ -520,29 +516,22 @@ void loop()
     FastLED.delay(1000/FRAMES_PER_SECOND);
   
     // Read the pot dial and change which pattern is displayed
-    //int idx;
-    //idx = patternIndex(analogRead(POT_PIN));
-    //if (mCurrentPattern != idx)
-    //{
-    //  mClearLeds = 1;
-    //  mCurrentPattern = idx;
-    //}
 
     // Check the potentiometer
-    switch(mPotState)
-    {
-      case POT_BRIGHT:
-        changeBrightness(analogRead(POT_PIN));
-        break;
-      case POT_PATTERN:
-        changePattern(analogRead(POT_PIN));
-        break;
-      case POT_COLOR:
-        changeBaseColor(analogRead(POT_PIN));
-        break;
-    }
-    //mCurrentPattern = patternIndex(analogRead(POT_PIN));
+//    switch(mPotState)
+//    {
+//      case POT_BRIGHT:
+//        changeBrightness(analogRead(POT_PIN));
+//        break;
+//      case POT_PATTERN:
+//        changePattern(analogRead(POT_PIN));
+//        break;
+//      case POT_COLOR:
+//        changeBaseColor(analogRead(POT_PIN));
+//        break;
+//    }
 
+    EVERY_N_SECONDS( 10 ) { mCurrentPattern = (mCurrentPattern + 1) % mPatternArraySize; }
     EVERY_N_MILLISECONDS( 20 ) { mHue++; }
   }
   else
@@ -581,18 +570,24 @@ void changeBrightness(uint16_t pot_val)
   {
     FastLED.setBrightness(brt);
     currentBrightness = brt;  
+    Serial.print("BRIGHT:");
+    Serial.println(brt);
   }  
 }
 
 void changePattern(uint16_t pot_val)
 {
   mCurrentPattern = patternIndex(pot_val);
+  Serial.print("PATTERN:");
+  Serial.println(mCurrentPattern);
 }
 
 void changeBaseColor(uint16_t pot_val)
 {
   uint16_t clr;
   clr = (pot_val * 255) / 1023;
+  Serial.print("COLOR:");
+  Serial.println(clr);
   mHue = clr;
 }
 
