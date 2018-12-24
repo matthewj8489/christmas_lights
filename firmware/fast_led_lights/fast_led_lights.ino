@@ -68,6 +68,10 @@ void allOff(CRGB * leds, int numLeds, uint32_t color) {
   FastLED.clear();
 }
 
+void fillColor(CRGB * leds, int numLeds, uint32_t color) {
+  fill_solid(leds, numLeds, color);
+}
+
 // R,G,B,W runs through the entire strand (best if long wait)
 void christmasChase(CRGB * leds, int numLeds, uint32_t color) {
 //  for(int j=0; j<4; j++) {
@@ -432,7 +436,7 @@ volatile unsigned long last_micros = 0;
 
 // List of patterns to display
 typedef void (*PatternList[])(CRGB*,int,uint32_t);
-PatternList mPatterns = {rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm};
+PatternList mPatterns = {rainbow, rainbowWithGlitter, confetti, sinelon, juggle, bpm, fillColor};
 uint32_t mPatternArraySize;
 uint8_t mCurrentPattern = 0;
 
