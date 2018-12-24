@@ -113,6 +113,7 @@ void loop() {
   if (switchState == 1) {
     startShow(showType);
     allLedOff = false;
+    showType = (showType + 1) % 15;
   } else if (allLedOff == false) {
     allOff();
     allLedOff = true;
