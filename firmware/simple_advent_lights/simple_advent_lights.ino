@@ -1,3 +1,33 @@
+#include <bitswap.h>
+#include <chipsets.h>
+#include <color.h>
+#include <colorpalettes.h>
+#include <colorutils.h>
+#include <controller.h>
+#include <cpp_compat.h>
+#include <dmx.h>
+#include <FastLED.h>
+#include <fastled_config.h>
+#include <fastled_delay.h>
+#include <fastled_progmem.h>
+#include <fastpin.h>
+#include <fastspi.h>
+#include <fastspi_bitbang.h>
+#include <fastspi_dma.h>
+#include <fastspi_nop.h>
+#include <fastspi_ref.h>
+#include <fastspi_types.h>
+#include <hsv2rgb.h>
+#include <led_sysdefs.h>
+#include <lib8tion.h>
+#include <noise.h>
+#include <pixelset.h>
+#include <pixeltypes.h>
+#include <platforms.h>
+#include <power_mgt.h>
+
+
+
 #define NUM_LEDS 100
 #define CANDLE_LENGTH   NUM_LEDS / 4
 #define CANDLE_1_START  NUM_LEDS * 3 / 4
@@ -12,13 +42,7 @@
                       //   driven with a pull-up resistor so the switch should
                       //   pull the pin to ground momentarily.  On a high -> low
                       //   transition the button press logic will execute. 
-
-#define SWITCH_PIN  4 // Digitla IO pin connected to the switch. The switch 
-                      //   turns the LEDs on/off
-
-#define POT_PIN A1 // Analog pin 1 is used for the potentiometer voltage
-                   //   reading.
-                      
+      
 			
 // Create a data array of all the available LEDs			
 CRGB leds[NUM_LEDS];
@@ -48,24 +72,31 @@ typedef enum candles_lit
 CANDLES_LIT mCurrentCandlesLitState = candles_0;
 CANDLES_LIT mNewCandlesLitState = candles_0;
 
-#define COLOR_PURPLE        0x6a0dad
-#define COLOR_DIM_PURPLE    0x350656 // 1/2 intensity; 0x1a032b // 1/4 intensity
-#define COLOR_PINK          0xffc0cb
-#define COLOR_DIM_PINK      0x7f6065 // 1/2 intensity; 0x3f3032 // 1/4 intensity
-
 #define HUE_PURPLE  192
 #define HUE_PINK    224
 #define VAL_ON      255
 #define VAL_DIM     64
+
+#define EFFECT_DELAY  100
 
 // Helpful macros/functions
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
 
 // Effects
-void effect_flicker(CRGB * leds, int numLeds, uint32_t color)
+void effect_pixel_fade(CRGB * leds, int numLeds, uint8_t hue_color, int pix, uint8_t val = 255)
 {
+  leds[pix] = CHSV(hue_color, 255, val);
+  val -= 1;
 
+  FastLED.show();
+
+  FastLED.delay(EFFECT_DELAY);
+
+  if (val < 0)
+    return;
+  else
+    return effect_pixel_fade(leds, numLeds, hue_color, pix, val);
 }
 
 
@@ -103,9 +134,6 @@ void setup()
 	
 	FastLED.setBrightness(BRIGHTNESS);
 
-  mPatternArraySize = ARRAY_SIZE(mPatterns);
-
-  pinMode(SWITCH_PIN, INPUT);
 	attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), debounceInterrupt, FALLING);
 
   Serial.begin(9600);
@@ -141,19 +169,21 @@ void loop()
 
     // Run through the flicker algorithm
     if(mCurrentCandlesLitState == candles_1)
-        effect_flicker(&leds[CANDLE_1_START], CANDLE_LENGTH, COLOR_PURPLE);
+        effect_pixel_fade(&leds[CANDLE_1_START], CANDLE_LENGTH, HUE_PURPLE, random(CANDLE_LENGTH));
     if(mCurrentCandlesLitState == candles_2)
-        effect_flicker(&leds[CANDLE_2_START], CANDLE_LENGTH, COLOR_PURPLE);
+        effect_pixel_fade(&leds[CANDLE_2_START], CANDLE_LENGTH, HUE_PURPLE, random(CANDLE_LENGTH));
     if(mCurrentCandlesLitState == candles_3)
-        effect_flicker(&leds[CANDLE_3_START], CANDLE_LENGTH, COLOR_PURPLE);
+        effect_pixel_fade(&leds[CANDLE_3_START], CANDLE_LENGTH, HUE_PINK, random(CANDLE_LENGTH));
     if(mCurrentCandlesLitState == candles_4)
-        effect_flicker(&leds[CANDLE_4_START], CANDLE_LENGTH, COLOR_PURPLE);
+        effect_pixel_fade(&leds[CANDLE_4_START], CANDLE_LENGTH, HUE_PURPLE, random(CANDLE_LENGTH));
+
+    FastLED.delay(EFFECT_DELAY);
         
     // Show the changes
-    FastLED.show();
+    //FastLED.show();
 
     // Delay
-    FastLED.delay(1000/FRAMES_PER_SECOND);
+    //FastLED.delay(1000/FRAMES_PER_SECOND);
 
     //EVERY_N_SECONDS( 10 ) { mCurrentPattern = (mCurrentPattern + 1) % mPatternArraySize; }
     //EVERY_N_MILLISECONDS( 20 ) { mHue++; }
