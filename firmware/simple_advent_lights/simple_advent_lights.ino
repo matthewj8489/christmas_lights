@@ -26,7 +26,7 @@
 //#include <platforms.h>
 //#include <power_mgt.h>
 
-
+#include <EEPROM.h>
 
 #define NUM_LEDS 100
 #define CANDLE_LENGTH   NUM_LEDS / 4
@@ -76,7 +76,7 @@ CANDLES_LIT mNewCandlesLitState = candles_0;
 #define HUE_PINK    118//pink:128
 #define VAL_ON_PURPLE 200
 #define VAL_ON      255
-#define VAL_DIM     100
+#define VAL_DIM     64
 
 #define EFFECT_DELAY  100
 
@@ -138,6 +138,12 @@ void setup()
 	attachInterrupt(digitalPinToInterrupt(BUTTON_PIN), debounceInterrupt, FALLING);
 
   Serial.begin(9600);
+
+  mCurrentCandlesLitState = EEPROM.read(0);
+
+  if (mCurrentCandlesLitState != candles_0 && mCurrentCandlesLitState != candles_1 && mCurrentCandlesLitState != candles_2 && mCurrentCandlesLitState != candles_3 && mCurrentCandlesLitState != candles_4)
+    mCurrentCandlesLitState = candles_0;
+    
 }
 
 void loop()
@@ -146,6 +152,7 @@ void loop()
     if (mCurrentCandlesLitState != mNewCandlesLitState)
     {
         mCurrentCandlesLitState = mNewCandlesLitState;
+        EEPROM.write(0, mCurrentCandlesLitState);
 
         if(mCurrentCandlesLitState == candles_1 || mCurrentCandlesLitState == candles_2 || mCurrentCandlesLitState == candles_3 || mCurrentCandlesLitState == candles_4)
             fill_solid(&leds[CANDLE_1_START], CANDLE_LENGTH, CHSV(HUE_PURPLE, 255, VAL_ON_PURPLE));
