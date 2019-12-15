@@ -1,30 +1,30 @@
-#include <bitswap.h>
-#include <chipsets.h>
-#include <color.h>
-#include <colorpalettes.h>
-#include <colorutils.h>
-#include <controller.h>
-#include <cpp_compat.h>
-#include <dmx.h>
+//#include <bitswap.h>
+//#include <chipsets.h>
+//#include <color.h>
+//#include <colorpalettes.h>
+//#include <colorutils.h>
+//#include <controller.h>
+//#include <cpp_compat.h>
+//#include <dmx.h>
 #include <FastLED.h>
-#include <fastled_config.h>
-#include <fastled_delay.h>
-#include <fastled_progmem.h>
-#include <fastpin.h>
-#include <fastspi.h>
-#include <fastspi_bitbang.h>
-#include <fastspi_dma.h>
-#include <fastspi_nop.h>
-#include <fastspi_ref.h>
-#include <fastspi_types.h>
-#include <hsv2rgb.h>
-#include <led_sysdefs.h>
-#include <lib8tion.h>
-#include <noise.h>
-#include <pixelset.h>
-#include <pixeltypes.h>
-#include <platforms.h>
-#include <power_mgt.h>
+//#include <fastled_config.h>
+//#include <fastled_delay.h>
+//#include <fastled_progmem.h>
+//#include <fastpin.h>
+//#include <fastspi.h>
+//#include <fastspi_bitbang.h>
+//#include <fastspi_dma.h>
+//#include <fastspi_nop.h>
+//#include <fastspi_ref.h>
+//#include <fastspi_types.h>
+//#include <hsv2rgb.h>
+//#include <led_sysdefs.h>
+//#include <lib8tion.h>
+//#include <noise.h>
+//#include <pixelset.h>
+//#include <pixeltypes.h>
+//#include <platforms.h>
+//#include <power_mgt.h>
 
 
 
@@ -58,8 +58,8 @@ CRGB leds[NUM_LEDS];
 
 
 // Debounce tracking
-#define DEBOUNCE_TIME 20
-volatile unsigned long last_micros = 0;
+#define DEBOUNCE_TIME 500
+volatile unsigned long last_millis = 0;
 
 typedef enum candles_lit
 {
@@ -72,10 +72,11 @@ typedef enum candles_lit
 CANDLES_LIT mCurrentCandlesLitState = candles_0;
 CANDLES_LIT mNewCandlesLitState = candles_0;
 
-#define HUE_PURPLE  192
-#define HUE_PINK    224
+#define HUE_PURPLE  140//purple:138//less blue:148//blue:156
+#define HUE_PINK    118//pink:128
+#define VAL_ON_PURPLE 200
 #define VAL_ON      255
-#define VAL_DIM     64
+#define VAL_DIM     100
 
 #define EFFECT_DELAY  100
 
@@ -93,7 +94,7 @@ void effect_pixel_fade(CRGB * leds, int numLeds, uint8_t hue_color, int pix, uin
 
   FastLED.delay(EFFECT_DELAY);
 
-  if (val < 0)
+  if (val <= 0)
     return;
   else
     return effect_pixel_fade(leds, numLeds, hue_color, pix, val);
@@ -146,36 +147,36 @@ void loop()
     {
         mCurrentCandlesLitState = mNewCandlesLitState;
 
-        if(mCurrentCandlesLitState == candles_1)
-            fill_solid(&leds[CANDLE_1_START], CANDLE_LENGTH, CHSV(HUE_PURPLE, 255, VAL_ON));
+        if(mCurrentCandlesLitState == candles_1 || mCurrentCandlesLitState == candles_2 || mCurrentCandlesLitState == candles_3 || mCurrentCandlesLitState == candles_4)
+            fill_solid(&leds[CANDLE_1_START], CANDLE_LENGTH, CHSV(HUE_PURPLE, 255, VAL_ON_PURPLE));
         else
             fill_solid(&leds[CANDLE_1_START], CANDLE_LENGTH, CHSV(HUE_PURPLE, 255, VAL_DIM));
 
-        if(mCurrentCandlesLitState == candles_2)
-            fill_solid(&leds[CANDLE_2_START], CANDLE_LENGTH, CHSV(HUE_PURPLE, 255, VAL_ON));
+        if(mCurrentCandlesLitState == candles_2 || mCurrentCandlesLitState == candles_3 || mCurrentCandlesLitState == candles_4)
+            fill_solid(&leds[CANDLE_2_START], CANDLE_LENGTH, CHSV(HUE_PURPLE, 255, VAL_ON_PURPLE));
         else
             fill_solid(&leds[CANDLE_2_START], CANDLE_LENGTH, CHSV(HUE_PURPLE, 255, VAL_DIM));
 
-        if(mCurrentCandlesLitState == candles_3)
-            fill_solid(&leds[CANDLE_3_START], CANDLE_LENGTH, CHSV(HUE_PURPLE, 255, VAL_ON));
+        if(mCurrentCandlesLitState == candles_3 || mCurrentCandlesLitState == candles_4)
+            fill_solid(&leds[CANDLE_3_START], CANDLE_LENGTH, CHSV(HUE_PINK, 255, VAL_ON));
         else
-            fill_solid(&leds[CANDLE_3_START], CANDLE_LENGTH, CHSV(HUE_PURPLE, 255, VAL_DIM));
+            fill_solid(&leds[CANDLE_3_START], CANDLE_LENGTH, CHSV(HUE_PINK, 255, VAL_DIM));
 
         if(mCurrentCandlesLitState == candles_4)
-            fill_solid(&leds[CANDLE_4_START], CANDLE_LENGTH, CHSV(HUE_PURPLE, 255, VAL_ON));
+            fill_solid(&leds[CANDLE_4_START], CANDLE_LENGTH, CHSV(HUE_PURPLE, 255, VAL_ON_PURPLE));
         else
             fill_solid(&leds[CANDLE_4_START], CANDLE_LENGTH, CHSV(HUE_PURPLE, 255, VAL_DIM));
     }
 
     // Run through the flicker algorithm
-    if(mCurrentCandlesLitState == candles_1)
-        effect_pixel_fade(&leds[CANDLE_1_START], CANDLE_LENGTH, HUE_PURPLE, random(CANDLE_LENGTH));
-    if(mCurrentCandlesLitState == candles_2)
-        effect_pixel_fade(&leds[CANDLE_2_START], CANDLE_LENGTH, HUE_PURPLE, random(CANDLE_LENGTH));
-    if(mCurrentCandlesLitState == candles_3)
-        effect_pixel_fade(&leds[CANDLE_3_START], CANDLE_LENGTH, HUE_PINK, random(CANDLE_LENGTH));
-    if(mCurrentCandlesLitState == candles_4)
-        effect_pixel_fade(&leds[CANDLE_4_START], CANDLE_LENGTH, HUE_PURPLE, random(CANDLE_LENGTH));
+    //if(mCurrentCandlesLitState == candles_1 || mCurrentCandlesLitState == candles_2 || mCurrentCandlesLitState == candles_3 || mCurrentCandlesLitState == candles_4)
+    //    effect_pixel_fade(&leds[CANDLE_1_START], CANDLE_LENGTH, HUE_PURPLE, random(CANDLE_LENGTH));
+    //if(mCurrentCandlesLitState == candles_2 || mCurrentCandlesLitState == candles_3 || mCurrentCandlesLitState == candles_4)
+    //    effect_pixel_fade(&leds[CANDLE_2_START], CANDLE_LENGTH, HUE_PURPLE, random(CANDLE_LENGTH));
+    //if(mCurrentCandlesLitState == candles_3 || mCurrentCandlesLitState == candles_4)
+    //    effect_pixel_fade(&leds[CANDLE_3_START], CANDLE_LENGTH, HUE_PINK, random(CANDLE_LENGTH));
+    //if(mCurrentCandlesLitState == candles_4)
+    //    effect_pixel_fade(&leds[CANDLE_4_START], CANDLE_LENGTH, HUE_PURPLE, random(CANDLE_LENGTH));
 
     FastLED.delay(EFFECT_DELAY);
         
@@ -190,11 +191,11 @@ void loop()
 }
 
 void debounceInterrupt() {
-  if((long)(micros() - last_micros) >= DEBOUNCE_TIME * 1000){
+  if((long)(millis() - last_millis) >= DEBOUNCE_TIME){
     // change state of the button here
     mNewCandlesLitState = (mNewCandlesLitState <= candles_4) ? mNewCandlesLitState + 1 : candles_0;
 
     // reset the debounce
-    last_micros = micros();
+    last_millis = millis();
   }
 }
